@@ -5,6 +5,10 @@ const previewImage = document.getElementById('previewImage');
 const sizeInfo = document.getElementById('sizeInfo');
 const compressButton = document.getElementById('compressButton');
 const downloadLink = document.getElementById('downloadLink');
+const downloadButton = document.getElementById('downloadButton');
+
+let compressedBlob = null;
+let originalFileName = '';
 
 uploadArea.addEventListener('dragover', (e) => {
     e.preventDefault();
@@ -27,8 +31,24 @@ fileInput.addEventListener('change', (e) => {
 
 compressButton.addEventListener('click', compressImage);
 
+downloadButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (compressedBlob) {
+        const url = URL.createObjectURL(compressedBlob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `compressed_${originalFileName}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+    }
+});
+
 function handleFile(file) {
     if (file && file.type.startsWith('image/')) {
+        originalFileName = file.name;
         const reader = new FileReader();
         reader.onload = (e) => {
             previewImage.src = e.target.result;
@@ -54,11 +74,10 @@ function compressImage() {
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
         canvas.toBlob((blob) => {
+            compressedBlob = blob;
             const compressedSize = blob.size;
             sizeInfo.innerHTML += `<br>Compressed Size: ${formatSize(compressedSize)}`;
             
-            const url = URL.createObjectURL(blob);
-            downloadLink.href = url;
             downloadLink.classList.remove('hidden');
             compressButton.style.display = 'none';
         }, 'image/jpeg', 0.7);
@@ -78,4 +97,9 @@ function formatSize(bytes) {
     } else {
         return '0 bytes';
     }
+}
+
+export default function Component() {
+    // This is a placeholder to satisfy the React component requirement
+    return null;
 }
